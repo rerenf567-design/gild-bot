@@ -164,8 +164,8 @@ client.once('ready', () => {
 
 client.login(process.env.TOKEN);
 
-// --- Koyeb 用ダミー HTTP サーバー ---
-import http from "http";
+// --- Koyeb のヘルスチェック対策（ポート8000を開く） ---
+const http = require("http");
 
 http.createServer((req, res) => {
   res.writeHead(200);
