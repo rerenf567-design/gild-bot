@@ -163,3 +163,11 @@ client.once('ready', () => {
 });
 
 client.login(process.env.TOKEN);
+
+// --- Koyeb 用ダミー HTTP サーバー ---
+import http from "http";
+
+http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end("OK");
+}).listen(8000);
