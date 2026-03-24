@@ -18,7 +18,7 @@ module.exports = {
     await interaction.reply({ content: '集計中です…', ephemeral: true });
 
     // --- attendance.json 読み込み ---
-    const file = './data/attendance.json';
+    const file = '/data/attendance.json';
     if (!fs.existsSync(file)) {
       return interaction.followUp('attendance.json が存在しません。');
     }

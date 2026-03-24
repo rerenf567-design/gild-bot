@@ -23,7 +23,7 @@ module.exports = {
     const counts = countsRaw.split(',').map(n => parseInt(n.trim(), 10));
 
     // --- lottery.json 読み込み ---
-    const file = './data/lottery.json';
+    const file = '/data/lottery.json';
     if (!fs.existsSync(file)) {
       return interaction.reply('lottery.json が存在しません。');
     }

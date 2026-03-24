@@ -56,7 +56,7 @@ module.exports = {
     }
 
     // --- attendance.json に保存 ---
-    const file = './data/attendance.json';
+    const file = '/data/attendance.json';
     const data = fs.existsSync(file)
       ? JSON.parse(fs.readFileSync(file, 'utf8'))
       : {};

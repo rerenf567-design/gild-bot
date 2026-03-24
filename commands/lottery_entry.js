@@ -60,7 +60,7 @@ ${note}
     }
 
     // --- lottery.json に保存 ---
-    const file = './data/lottery.json';
+    const file = '/data/lottery.json';
     const data = fs.existsSync(file)
       ? JSON.parse(fs.readFileSync(file, 'utf8'))
       : {};
