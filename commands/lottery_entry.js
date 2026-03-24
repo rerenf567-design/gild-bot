@@ -24,7 +24,7 @@ module.exports = {
   async execute(interaction) {
     const date = interaction.options.getString('date');
     const rawItems = interaction.options.getString('items');
-    const note = interaction.options.getString('note') ?? '〆切：当日22:00ごろ';
+    const note = interaction.options.getString('note') ?? '当日22時ごろ〆切';
 
     // --- 商品リストをパース ---
     const items = rawItems.split(',').map(item => {
@@ -37,16 +37,16 @@ module.exports = {
     // --- メッセージ本文 ---
     let text = `【抽選応募受付】${date} 分の商品\n\n`;
 
+    text += `参加したい方はリアクションしてください！
+    欠席になった場合はリアクションを外してください`
+
     for (const it of items) {
       text += `${it.emoji} ${it.label}\n`;
     }
+  
+    text += `${note}`;
 
-    text += `
-参加したい方はリアクションしてください！
-欠席になった場合はリアクションを外してください
 
-${note}
-`;
 
     // --- メッセージ送信 ---
     const msg = await interaction.reply({
@@ -60,7 +60,7 @@ ${note}
     }
 
     // --- lottery.json に保存 ---
-    const file = '/data/lottery.json';
+    const file = './data/lottery.json';
     const data = fs.existsSync(file)
       ? JSON.parse(fs.readFileSync(file, 'utf8'))
       : {};
