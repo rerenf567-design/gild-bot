@@ -40,13 +40,13 @@ module.exports = {
       return interaction.reply('当選数の数が商品数と一致していません。');
     }
 
-    // --- 正しいチャンネルから応募メッセージを取得 ---
-    const channel = await interaction.client.channels.fetch(channelId);
-    const msg = await channel.messages.fetch(messageId);
+    // --- 応募メッセージを取得 ---
+    const entryChannel = await interaction.client.channels.fetch(channelId);
+    const entryMessage = await entryChannel.messages.fetch(messageId);
 
     // --- リアクションから応募者を読み取る ---
     for (const item of items) {
-      const reaction = msg.reactions.cache.get(item.emoji);
+      const reaction = entryMessage.reactions.cache.get(item.emoji);
 
       if (!reaction) {
         item.entries = [];
@@ -107,10 +107,13 @@ module.exports = {
 
     resultText += `おめでとうございます！`;
 
-    // --- 抽選結果を投稿 ---
-    const resultMessage = await interaction.reply(resultText);
+    // --- 結果チャンネル（コマンドを実行した場所） ---
+    const resultChannel = interaction.channel;
 
-    // --- スレッド作成 ---
+    // --- 抽選結果を結果チャンネルに投稿 ---
+    const resultMessage = await resultChannel.send(resultText);
+
+    // --- スレッド作成（結果チャンネルの投稿に紐づく） ---
     const thread = await resultMessage.startThread({
       name: `抽選履歴：${date}`,
       autoArchiveDuration: 1440
@@ -121,5 +124,8 @@ module.exports = {
     // --- 抽選後データ削除 ---
     delete data[date];
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
+
+    // --- slash コマンドの応答 ---
+    await interaction.reply({ content: '抽選を実行しました！', ephemeral: true });
   }
 };
