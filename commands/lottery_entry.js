@@ -38,10 +38,10 @@ module.exports = {
     let text = `【抽選応募受付】${date} 分の商品\n\n`;
 
     text += `参加したい方はリアクションしてください！
-    欠席になった場合はリアクションを外してください`
+    欠席になった場合はリアクションを外してください\n\n`
 
     for (const it of items) {
-      text += `${it.emoji} ${it.label}\n`;
+      text += `${it.emoji} ${it.label}\n\n`;
     }
   
     text += `${note}`;
