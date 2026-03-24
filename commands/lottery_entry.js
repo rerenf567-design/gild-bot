@@ -41,10 +41,10 @@ module.exports = {
     欠席になった場合はリアクションを外してください\n\n`
 
     for (const it of items) {
-      text += `${it.emoji} ${it.label}\n\n`;
+      text += `${it.emoji} ${it.label}\n`;
     }
   
-    text += `${note}`;
+    text += `\n${note}`;
 
 
 
