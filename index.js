@@ -36,7 +36,7 @@ client.on('interactionCreate', async interaction => {
     await command.execute(interaction);
   } catch (error) {
     console.error(error);
-    await interaction.reply({ content: 'エラーが発生しました。', ephemeral: true });
+    await interaction.reply({ content: 'エラーが発生しました。', ephemeral: false });
   }
 });
 
@@ -61,8 +61,8 @@ client.on('messageCreate', async message => {
     if (!command) return;
 
     await command.execute({
-      reply: async (obj) => message.reply(obj),
-      followUp: async (obj) => message.reply(obj),
+      reply: async (obj) => message.channel.send(obj),
+      followUp: async (obj) => message.channel.send(obj),
       channel: message.channel,
       user: message.author,
       guild: message.guild,
@@ -86,8 +86,8 @@ client.on('messageCreate', async message => {
     if (!command) return;
 
     await command.execute({
-      reply: async (obj) => message.reply(obj),
-      followUp: async (obj) => message.reply(obj),
+      reply: async (obj) => message.channel.send(obj),
+      followUp: async (obj) => message.channel.send(obj),
       channel: message.channel,
       user: message.author,
       guild: message.guild,
@@ -110,8 +110,8 @@ client.on('messageCreate', async message => {
     if (!command) return;
 
     await command.execute({
-      reply: async (obj) => message.reply(obj),
-      followUp: async (obj) => message.reply(obj),
+      reply: async (obj) => message.channel.send(obj),
+      followUp: async (obj) => message.channel.send(obj),
       channel: message.channel,
       user: message.author,
       guild: message.guild,
@@ -137,8 +137,8 @@ client.on('messageCreate', async message => {
 
     await command.execute({
       client,
-      reply: async (obj) => message.reply(obj),
-      followUp: async (obj) => message.reply(obj),
+      reply: async (obj) => message.channel.send(obj),
+      followUp: async (obj) => message.channel.send(obj),
       channel: message.channel,
       user: message.author,
       guild: message.guild,
