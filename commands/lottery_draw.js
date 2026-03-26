@@ -24,29 +24,27 @@ module.exports = {
     // --- JSON 読み込み ---
     const file = '/data/lottery.json';
     if (!fs.existsSync(file)) {
-      return interaction.reply({ content: 'lottery.json が存在しません。', ephemeral: true });
+      return interaction.reply({ content: 'lottery.json が存在しません。' });
     }
 
     const data = JSON.parse(fs.readFileSync(file, 'utf8'));
 
     if (!data[entryId]) {
-      return interaction.reply({ content: '指定されたIDの抽選データがありません。', ephemeral: true });
+      return interaction.reply({ content: '指定されたIDの抽選データがありません。' });
     }
 
     const { channelId, messageId, date, items } = data[entryId];
 
     if (counts.length !== items.length) {
-      return interaction.reply({ content: '当選数の数が商品数と一致していません。', ephemeral: true });
+      return interaction.reply({ content: '当選数の数が商品数と一致していません。' });
     }
 
-    // --- 応募メッセージ取得（削除されていても落ちない） ---
+    // --- 応募メッセージ取得 ---
     let entryMessage = null;
     try {
       const entryChannel = await interaction.client.channels.fetch(channelId);
       entryMessage = await entryChannel.messages.fetch(messageId);
-    } catch {
-      // メッセージが削除されていても entries=[] で続行
-    }
+    } catch {}
 
     // --- リアクションから応募者を読み取る ---
     for (const item of items) {
@@ -123,7 +121,7 @@ module.exports = {
     delete data[entryId];
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
-    // --- slash コマンド応答 ---
-    await interaction.reply({ content: '抽選を実行しました！', ephemeral: true });
+    // --- slash コマンド応答（全員に見える） ---
+    await interaction.reply({ content: '抽選を実行しました！' });
   }
 };

@@ -27,7 +27,7 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    const entryId = interaction.options.getString('id');  // ← K が自由に決めるID
+    const entryId = interaction.options.getString('id');
     const date = interaction.options.getString('date');
     const rawList = interaction.options.getString('list');
     const note = interaction.options.getString('note') ?? '';
@@ -76,10 +76,9 @@ module.exports = {
 
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
-    // --- コマンド実行チャンネルに通知 ---
+    // --- コマンド実行チャンネルに通知（全員に見える） ---
     await interaction.reply({
-      content: `出欠メッセージを作成しました：**${entryId}**`,
-      ephemeral: true
+      content: `出欠メッセージを作成しました：**${entryId}**`
     });
   }
 };

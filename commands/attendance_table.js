@@ -14,8 +14,8 @@ module.exports = {
   async execute(interaction) {
     const entryId = interaction.options.getString('id');
 
-    // ① 先に応答（タイムアウト防止）
-    await interaction.reply({ content: '集計中です…', ephemeral: true });
+    // ① 先に応答（全員に見える）
+    await interaction.reply({ content: '集計中です…' });
 
     // --- attendance.json 読み込み ---
     const file = '/data/attendance.json';
@@ -31,13 +31,13 @@ module.exports = {
 
     const { messageId, channelId, options } = data[entryId];
 
-    // --- 応募チャンネルからメッセージ取得（削除されていても落ちない） ---
+    // --- 応募チャンネルからメッセージ取得 ---
     let msg = null;
     try {
       const entryChannel = await interaction.client.channels.fetch(channelId);
       msg = await entryChannel.messages.fetch(messageId);
     } catch {
-      // メッセージが削除されている場合は msg=null のまま続行
+      // メッセージが削除されていても続行
     }
 
     // --- 出欠表データ作成 ---
@@ -60,9 +60,9 @@ module.exports = {
     // --- CSV形式に整形 ---
     const columns = Object.entries(contentResults).map(([content, users]) => {
       const col = [];
-      col.push(content);          // 1行目：項目名
-      col.push(users.length);     // 2行目：人数
-      col.push(...users);         // 3行目以降：ユーザー名
+      col.push(content);
+      col.push(users.length);
+      col.push(...users);
       return col;
     });
 
@@ -82,7 +82,7 @@ module.exports = {
     delete data[entryId];
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
-    // --- 完了通知 ---
-    await interaction.followUp({ content: '出欠集計が完了しました！', ephemeral: true });
+    // --- 完了通知（全員に見える） ---
+    await interaction.followUp({ content: '出欠集計が完了しました！' });
   }
 };
