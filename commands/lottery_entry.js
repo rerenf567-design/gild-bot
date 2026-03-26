@@ -4,7 +4,12 @@ const fs = require('fs');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('lottery_entry')
-    .setDescription('抽選応募受付メッセージを作成します（曜日まとめ形式）')
+    .setDescription('抽選応募受付メッセージを作成します（ID方式）')
+    .addStringOption(opt =>
+      opt.setName('id')
+        .setDescription('エントリーID（例: A班, 夜の部）')
+        .setRequired(true)
+    )
     .addStringOption(opt =>
       opt.setName('date')
         .setDescription('抽選日 (YYYY-MM-DD)')
@@ -22,60 +27,58 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    const entryId = interaction.options.getString('id');   // ← K が自由に決めるID
     const date = interaction.options.getString('date');
     const rawItems = interaction.options.getString('items');
     const note = interaction.options.getString('note') ?? '当日22時ごろ〆切';
 
     // --- 商品リストをパース ---
     const items = rawItems.split(',').map(item => {
-      const trimmed = item.trim();      // "🌲 ウッドブースト"
+      const trimmed = item.trim();
       const [emoji, ...labelParts] = trimmed.split(' ');
       const label = labelParts.join(' ');
       return { emoji, label, entries: [] };
     });
 
     // --- メッセージ本文 ---
-    let text = `【抽選応募受付】${date} 分の商品\n\n`;
-
-    text += `参加したい方はリアクションしてください！
-    欠席になった場合はリアクションを外してください\n\n`
+    let text = `【抽選応募受付】${entryId}\n`;
+    text += `抽選日：${date}\n\n`;
+    text += `参加したい方はリアクションしてください！\n`;
+    text += `欠席になった場合はリアクションを外してください\n\n`;
 
     for (const it of items) {
       text += `${it.emoji} ${it.label}\n`;
     }
-  
+
     text += `\n${note}`;
 
+    // --- 応募チャンネルに投稿 ---
+    const entryChannel = interaction.guild.channels.cache.get("1127938242302443530");
+    const msg = await entryChannel.send(text);
 
-
-    // --- メッセージ送信 ---
-    const msg = await interaction.reply({
-      content: text,
-      fetchReply: true
-    });
-
-    // --- 商品ごとにリアクション付与 ---
+    // --- リアクション付与 ---
     for (const it of items) {
       await msg.react(it.emoji);
     }
 
-    // --- lottery.json に保存 ---
+    // --- JSON 保存（ID方式） ---
     const file = '/data/lottery.json';
     const data = fs.existsSync(file)
       ? JSON.parse(fs.readFileSync(file, 'utf8'))
       : {};
 
-data[date] = {
-  channelId: msg.channel.id,
-  messageId: msg.id,
-  items
-};
+    data[entryId] = {
+      messageId: msg.id,
+      channelId: entryChannel.id,
+      date,
+      items
+    };
 
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
-    // スタッフ向け通知
-    await interaction.followUp({
-      content: '抽選応募受付メッセージを作成しました！',
+    // --- スタッフ向け通知（コマンド実行チャンネル） ---
+    await interaction.reply({
+      content: `抽選応募受付を作成しました：**${entryId}**`,
       ephemeral: true
     });
   }

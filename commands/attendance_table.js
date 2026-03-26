@@ -4,17 +4,17 @@ const fs = require('fs');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('attendance_table')
-    .setDescription('出欠リアクションを集計して表形式で出力します')
+    .setDescription('出欠リアクションを集計して表形式で出力します（ID方式）')
     .addStringOption(opt =>
-      opt.setName('date')
-        .setDescription('日付 (YYYY-MM-DD)')
+      opt.setName('id')
+        .setDescription('出欠ID（例: 3月1週, A班出欠）')
         .setRequired(true)
     ),
 
   async execute(interaction) {
-    const date = interaction.options.getString('date');
+    const entryId = interaction.options.getString('id');
 
-    // ① 先に応答（これでタイムアウトしない）
+    // ① 先に応答（タイムアウト防止）
     await interaction.reply({ content: '集計中です…', ephemeral: true });
 
     // --- attendance.json 読み込み ---
@@ -25,59 +25,64 @@ module.exports = {
 
     const data = JSON.parse(fs.readFileSync(file, 'utf8'));
 
-    if (!data[date]) {
-      return interaction.followUp('指定された日付のデータがありません。');
+    if (!data[entryId]) {
+      return interaction.followUp('指定されたIDのデータがありません。');
     }
 
-    const { messageId, options } = data[date];
+    const { messageId, channelId, options } = data[entryId];
 
-    // --- メッセージ取得 ---
-    const channel = interaction.channel;
-    const msg = await channel.messages.fetch(messageId);
+    // --- 応募チャンネルからメッセージ取得（削除されていても落ちない） ---
+    let msg = null;
+    try {
+      const entryChannel = await interaction.client.channels.fetch(channelId);
+      msg = await entryChannel.messages.fetch(messageId);
+    } catch {
+      // メッセージが削除されている場合は msg=null のまま続行
+    }
 
-    // --- 出欠表（CSV形式）を組み立て ---
-
-    // 1. 各コンテンツのユーザー一覧を取得
+    // --- 出欠表データ作成 ---
     const contentResults = {};
 
     for (const opt of options) {
-      const reaction = msg.reactions.cache.get(opt.emoji);
-
       let users = [];
-      if (reaction) {
-        const fetched = await reaction.users.fetch();
-        users = fetched
-          .filter(u => !u.bot)
-          .map(u => u.username);
+
+      if (msg) {
+        const reaction = msg.reactions.cache.get(opt.emoji);
+        if (reaction) {
+          const fetched = await reaction.users.fetch();
+          users = fetched.filter(u => !u.bot).map(u => u.username);
+        }
       }
 
       contentResults[`${opt.emoji} ${opt.label}`] = users;
     }
 
-    // 2. 列ごとに配列を作成（1列＝1コンテンツ）
+    // --- CSV形式に整形 ---
     const columns = Object.entries(contentResults).map(([content, users]) => {
       const col = [];
-      col.push(content);          // 1行目：コンテンツ名
+      col.push(content);          // 1行目：項目名
       col.push(users.length);     // 2行目：人数
       col.push(...users);         // 3行目以降：ユーザー名
       return col;
     });
 
-    // 3. 最長列に合わせて行数を揃える
     const maxRows = Math.max(...columns.map(col => col.length));
 
-    // 4. 行ごとにカンマ区切りで結合（CSV）
     let output = '';
     for (let row = 0; row < maxRows; row++) {
       const line = columns.map(col => col[row] ?? '').join(',');
       output += line + '\n';
     }
 
-    // 5. followUp で返す（reply は最初の1回だけ）
-    await interaction.followUp("```\n" + output + "```");
+    // --- コマンド実行チャンネルに投稿 ---
+    const commandChannel = interaction.guild.channels.cache.get("1481902590890606633");
+    await commandChannel.send("```\n" + output + "```");
 
-    // 6. 出欠が終わったら削除
-    delete data[date];
+    // --- JSON の該当IDだけ削除 ---
+    delete data[entryId];
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
+
+    // --- 完了通知 ---
+    await interaction.followUp({ content: '出欠集計が完了しました！', ephemeral: true });
   }
 };
