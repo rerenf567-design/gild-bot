@@ -51,25 +51,24 @@ client.on('messageCreate', async message => {
 
   const [cmd, ...args] = message.content.slice(prefix.length).split(' ');
 
-  // !ac → attendance_create
+  // !ac → attendance_create（ID方式）
   if (cmd === 'ac') {
-    const date = args[0];
-    const list = args.slice(1).join(' ');
+    const entryId = args[0];
+    const date = args[1];
+    const list = args.slice(2).join(' ');
 
     const command = client.commands.get('attendance_create');
     if (!command) return;
 
     await command.execute({
-      reply: async (obj) => {
-        return await message.reply(obj);
-      },
-      followUp: async (obj) => {
-        return await message.reply(obj);
-      },
+      reply: async (obj) => message.reply(obj),
+      followUp: async (obj) => message.reply(obj),
       channel: message.channel,
       user: message.author,
+      guild: message.guild,
       options: {
         getString: (name) => {
+          if (name === 'id') return entryId;
           if (name === 'date') return date;
           if (name === 'list') return list;
           if (name === 'note') return null;
@@ -79,50 +78,46 @@ client.on('messageCreate', async message => {
     });
   }
 
-  // !at → attendance_table
+  // !at → attendance_table（ID方式）
   if (cmd === 'at') {
-    const date = args[0];
+    const entryId = args[0];
 
     const command = client.commands.get('attendance_table');
     if (!command) return;
 
     await command.execute({
-      reply: async (obj) => {
-        return await message.reply(obj);
-      },
-      followUp: async (obj) => {
-        return await message.reply(obj);
-      },
+      reply: async (obj) => message.reply(obj),
+      followUp: async (obj) => message.reply(obj),
       channel: message.channel,
       user: message.author,
+      guild: message.guild,
       options: {
         getString: (name) => {
-          if (name === 'date') return date;
+          if (name === 'id') return entryId;
           return null;
         }
       }
     });
   }
 
-  // !le → lottery_entry
+  // !le → lottery_entry（ID方式）
   if (cmd === 'le') {
-    const date = args[0];
-    const items = args.slice(1).join(' ');
+    const entryId = args[0];
+    const date = args[1];
+    const items = args.slice(2).join(' ');
 
     const command = client.commands.get('lottery_entry');
     if (!command) return;
 
     await command.execute({
-      reply: async (obj) => {
-        return await message.reply(obj);
-      },
-      followUp: async (obj) => {
-        return await message.reply(obj);
-      },
+      reply: async (obj) => message.reply(obj),
+      followUp: async (obj) => message.reply(obj),
       channel: message.channel,
       user: message.author,
+      guild: message.guild,
       options: {
         getString: (name) => {
+          if (name === 'id') return entryId;
           if (name === 'date') return date;
           if (name === 'items') return items;
           if (name === 'note') return null;
@@ -132,29 +127,30 @@ client.on('messageCreate', async message => {
     });
   }
 
-// !ld → lottery_draw
-if (cmd === 'ld') {
-  const date = args[0];
-  const counts = args[1];
+  // !ld → lottery_draw（ID方式）
+  if (cmd === 'ld') {
+    const entryId = args[0];
+    const counts = args[1];
 
-  const command = client.commands.get('lottery_draw');
-  if (!command) return;
+    const command = client.commands.get('lottery_draw');
+    if (!command) return;
 
-  await command.execute({
-    client, // ← これが重要！
-    reply: async (obj) => message.reply(obj),
-    followUp: async (obj) => message.reply(obj),
-    channel: message.channel,
-    user: message.author,
-    options: {
-      getString: (name) => {
-        if (name === 'date') return date;
-        if (name === 'counts') return counts;
-        return null;
+    await command.execute({
+      client,
+      reply: async (obj) => message.reply(obj),
+      followUp: async (obj) => message.reply(obj),
+      channel: message.channel,
+      user: message.author,
+      guild: message.guild,
+      options: {
+        getString: (name) => {
+          if (name === 'id') return entryId;
+          if (name === 'counts') return counts;
+          return null;
+        }
       }
-    }
-  });
-}
+    });
+  }
 });
 
 // --- Bot 起動 ---
