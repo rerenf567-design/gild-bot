@@ -40,16 +40,24 @@ module.exports = {
       return { emoji, label };
     });
 
-    // --- メッセージ本文 ---
-    let text = `【出欠確認】${entryId}\n対象日：${date}\n\n`;
-    text += `参加できる日にリアクションをお願いします！\n\n`;
+    // --- パターンC本文 ---
+    let text = "";
+    text += "★━━━━━━━━━━━━━━━━★\n";
+    text += "　　🏰 ギルドコンテンツ出欠確認 🏰\n";
+    text += "★━━━━━━━━━━━━━━━━★\n\n";
+    text += `【ID】${entryId}\n`;
+    text += `${date} 週のギルコン出欠お願いします！\n\n`;
+    text += "▼ 参加区分\n";
+    text += "--------------------------------\n";
 
     for (const opt of options) {
       text += `${opt.emoji} ${opt.label}\n`;
     }
 
+    text += "--------------------------------\n\n";
+
     if (note) {
-      text += `\n${note}`;
+      text += `📌 備考：${note}\n`;
     }
 
     // --- 応募チャンネルに投稿 ---
@@ -76,7 +84,7 @@ module.exports = {
 
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
-    // --- コマンド実行チャンネルに通知（全員に見える） ---
+    // --- コマンド実行チャンネルに通知 ---
     await interaction.reply({
       content: `出欠メッセージを作成しました：**${entryId}**`
     });
