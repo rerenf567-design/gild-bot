@@ -63,8 +63,13 @@ module.exports = {
       item.entries = fetched.filter(u => !u.bot).map(u => u.id);
     }
 
-    // --- 抽選処理 ---
-    let resultText = `【抽選結果】${entryId}\n抽選日：${date}\n\n`;
+    // --- 抽選結果（赤系デザイン） ---
+    let resultText = `【${entryId}】🏆 抽選結果 / Result\n\n`;
+    resultText += "╔══════════════════════╗\n";
+    resultText += "        🏆 抽選結果 🏆\n";
+    resultText += "╚══════════════════════╝\n\n";
+    resultText += `📅 抽選日：${date}\n\n`;
+
     let logText = `【抽選ログ】${entryId}\n抽選日：${date}\n\n`;
 
     for (let i = 0; i < items.length; i++) {
@@ -107,9 +112,9 @@ module.exports = {
       }
     }
 
-    resultText += `おめでとうございます！`;
+    resultText += `🎉 おめでとうございます！`;
 
-    // --- 抽選結果チャンネルに投稿 ---
+    // --- 抽選結果を抽選チャンネルに投稿 ---
     const resultChannel = interaction.guild.channels.cache.get("1486690827119100024");
     await resultChannel.send(resultText);
 
@@ -121,7 +126,7 @@ module.exports = {
     delete data[entryId];
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
-    // --- slash コマンド応答（全員に見える） ---
+    // --- slash コマンド応答 ---
     await interaction.reply({ content: '抽選を実行しました！' });
   }
 };

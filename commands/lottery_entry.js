@@ -40,29 +40,30 @@ module.exports = {
       return { emoji, label, entries: [] };
     });
 
-    // --- パターンC本文（抽選応募版） ---
-    let text = "";
-    text += "★━━━━━━━━━━━━━━━━★\n";
-    text += "　　　🎯 抽選応募受付 🎯\n";
-    text += "★━━━━━━━━━━━━━━━━★\n\n";
-    text += `【ID】${entryId}\n`;
-    text += `${date}日 抽選商品の応募受付中です！\n\n`;
-    text += "▼ 応募アイテム\n";
-    text += "--------------------------------\n";
+    // --- 抽選チャンネル（募集＋結果を統合） ---
+    const lotteryChannel = interaction.guild.channels.cache.get("1486690827119100024");
 
+    // --- 青系デザイン（募集） ---
+    let text = "";
+    text += `【${entryId}】🎉 抽選募集 / Entry\n\n`;
+    text += "╔══════════════════════╗\n";
+    text += "        🎉 抽選募集 🎉\n";
+    text += "╚══════════════════════╝\n\n";
+
+    text += `📅 抽選日：${date}\n\n`;
+
+    text += "📦 応募アイテム\n";
+    text += "--------------------------------\n";
     for (const it of items) {
       text += `${it.emoji} ${it.label}\n`;
     }
-
     text += "--------------------------------\n\n";
 
-    if (note) {
-      text += `📌 備考：${note}\n`;
-    }
+    text += `📝 応募方法：このメッセージにリアクション\n`;
+    text += `📌 備考：${note}\n`;
 
-    // --- 応募チャンネルに投稿 ---
-    const entryChannel = interaction.guild.channels.cache.get("1127938242302443530");
-    const msg = await entryChannel.send(text);
+    // --- 投稿 ---
+    const msg = await lotteryChannel.send(text);
 
     // --- リアクション付与 ---
     for (const it of items) {
@@ -77,7 +78,7 @@ module.exports = {
 
     data[entryId] = {
       messageId: msg.id,
-      channelId: entryChannel.id,
+      channelId: lotteryChannel.id,
       date,
       items
     };
