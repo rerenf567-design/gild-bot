@@ -65,9 +65,9 @@ module.exports = {
 
     // --- 抽選結果（赤系デザイン） ---
     let resultText = `【${entryId}】🏆 抽選結果 / Result\n\n`;
-    resultText += "╔══════════════════════╗\n";
-    resultText += "        🏆 抽選結果 🏆\n";
-    resultText += "╚══════════════════════╝\n\n";
+    resultText += "╔══════════════╗\n";
+    resultText += "  🏆 抽選結果 🏆\n";
+    resultText += "╚══════════════╝\n\n";
     resultText += `📅 抽選日：${date}\n\n`;
 
     let logText = `【抽選ログ】${entryId}\n抽選日：${date}\n\n`;
