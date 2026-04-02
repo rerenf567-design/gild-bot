@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, escapeMarkdown } = require('discord.js');
 const fs = require('fs');
 
 module.exports = {
@@ -14,10 +14,8 @@ module.exports = {
   async execute(interaction) {
     const entryId = interaction.options.getString('id');
 
-    // ① 先に応答（全員に見える）
     await interaction.reply({ content: '集計中です…' });
 
-    // --- attendance.json 読み込み ---
     const file = '/data/attendance.json';
     if (!fs.existsSync(file)) {
       return interaction.followUp('attendance.json が存在しません。');
@@ -31,16 +29,12 @@ module.exports = {
 
     const { messageId, channelId, options } = data[entryId];
 
-    // --- 応募チャンネルからメッセージ取得 ---
     let msg = null;
     try {
       const entryChannel = await interaction.client.channels.fetch(channelId);
       msg = await entryChannel.messages.fetch(messageId);
-    } catch {
-      // メッセージが削除されていても続行
-    }
+    } catch {}
 
-    // --- 出欠表データ作成 ---
     const contentResults = {};
 
     for (const opt of options) {
@@ -50,14 +44,15 @@ module.exports = {
         const reaction = msg.reactions.cache.get(opt.emoji);
         if (reaction) {
           const fetched = await reaction.users.fetch();
-          users = fetched.filter(u => !u.bot).map(u => u.username);
+          users = fetched
+            .filter(u => !u.bot)
+            .map(u => escapeMarkdown(u.username)); // ← 安全化
         }
       }
 
       contentResults[`${opt.emoji} ${opt.label}`] = users;
     }
 
-    // --- CSV形式に整形 ---
     const columns = Object.entries(contentResults).map(([content, users]) => {
       const col = [];
       col.push(content);
@@ -74,15 +69,12 @@ module.exports = {
       output += line + '\n';
     }
 
-    // --- コマンド実行チャンネルに投稿 ---
     const commandChannel = interaction.guild.channels.cache.get("1481902590890606633");
     await commandChannel.send("```\n" + output + "```");
 
-    // --- JSON の該当IDだけ削除 ---
     delete data[entryId];
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
-    // --- 完了通知（全員に見える） ---
     await interaction.followUp({ content: '出欠集計が完了しました！' });
   }
 };

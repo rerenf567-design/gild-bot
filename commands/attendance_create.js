@@ -43,12 +43,11 @@ module.exports = {
     // --- パターンC本文 ---
     let text = "";
     text += "★━━━━━━━━━━━━━━━━★\n";
-    text += "　　🏰 ギルドコンテンツ出欠確認 🏰\n";
+    text += "🏰 ${date} 週のギルコン出欠確認 🏰\n";
     text += "★━━━━━━━━━━━━━━━━★\n\n";
     text += `【ID】${entryId}\n`;
-    text += `${date} 週のギルコン出欠お願いします！\n\n`;
-    text += "▼ 参加区分\n";
-    text += "--------------------------------\n";
+    text += `リアクションをお願いします！\n\n`;
+      text += "--------------------------------\n";
 
     for (const opt of options) {
       text += `${opt.emoji} ${opt.label}\n`;
@@ -57,7 +56,7 @@ module.exports = {
     text += "--------------------------------\n\n";
 
     if (note) {
-      text += `📌 備考：${note}\n`;
+      text += `📌 ${note}\n`;
     }
 
     // --- 応募チャンネルに投稿 ---

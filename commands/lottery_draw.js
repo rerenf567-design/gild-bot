@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, escapeMarkdown } = require('discord.js');
 const fs = require('fs');
 
 module.exports = {
@@ -21,7 +21,6 @@ module.exports = {
     const countsRaw = interaction.options.getString('counts');
     const counts = countsRaw.split(',').map(n => parseInt(n.trim(), 10));
 
-    // --- JSON 読み込み ---
     const file = '/data/lottery.json';
     if (!fs.existsSync(file)) {
       return interaction.reply({ content: 'lottery.json が存在しません。' });
@@ -39,7 +38,6 @@ module.exports = {
       return interaction.reply({ content: '当選数の数が商品数と一致していません。' });
     }
 
-    // --- 応募メッセージ取得 ---
     let entryMessage = null;
     try {
       const entryChannel = await interaction.client.channels.fetch(channelId);
@@ -64,11 +62,11 @@ module.exports = {
     }
 
     // --- 抽選結果（赤系デザイン） ---
-    let resultText = `【${entryId}】🏆 抽選結果 / Result\n\n`;
-    resultText += "╔══════════════╗\n";
-    resultText += "  🏆 抽選結果 🏆\n";
+    let 
+    resultText = "╔══════════════╗\n";
+    resultText += "🏆 ${date} の抽選結果 🏆\n";
     resultText += "╚══════════════╝\n\n";
-    resultText += `📅 抽選日：${date}\n\n`;
+    resultText += `【ID】${entryId}】\n\n`;
 
     let logText = `【抽選ログ】${entryId}\n抽選日：${date}\n\n`;
 
@@ -91,13 +89,13 @@ module.exports = {
         resultText += `\n`;
       }
 
-      // --- ログ（メンションなし） ---
+      // --- ログ（メンションなし・Markdown安全化） ---
       logText += `■ ${item.label}\n`;
       logText += `当選者（${winners.length}名）\n`;
 
       for (const uid of winners) {
         const user = await interaction.client.users.fetch(uid);
-        logText += `- ${user.username}\n`;
+        logText += `- ${escapeMarkdown(user.username)}\n`;
       }
 
       logText += `\nその他（ランダム順）\n`;
@@ -106,7 +104,7 @@ module.exports = {
       } else {
         for (const uid of others) {
           const user = await interaction.client.users.fetch(uid);
-          logText += `- ${user.username}\n`;
+          logText += `- ${escapeMarkdown(user.username)}\n`;
         }
         logText += `\n`;
       }
@@ -114,19 +112,15 @@ module.exports = {
 
     resultText += `🎉 おめでとうございます！`;
 
-    // --- 抽選結果を抽選チャンネルに投稿 ---
     const resultChannel = interaction.guild.channels.cache.get("1486690827119100024");
     await resultChannel.send(resultText);
 
-    // --- 抽選ログをコマンド実行チャンネルに投稿 ---
     const commandChannel = interaction.guild.channels.cache.get("1481902590890606633");
     await commandChannel.send(logText);
 
-    // --- JSON の該当IDだけ削除 ---
     delete data[entryId];
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
-    // --- slash コマンド応答 ---
     await interaction.reply({ content: '抽選を実行しました！' });
   }
 };

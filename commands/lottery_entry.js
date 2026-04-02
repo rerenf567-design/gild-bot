@@ -44,23 +44,20 @@ module.exports = {
     const lotteryChannel = interaction.guild.channels.cache.get("1486690827119100024");
 
     // --- 青系デザイン（募集） ---
-    let text = "";
-    text += `【${entryId}】🎉 抽選募集 / Entry\n\n`;
-    text += "╔══════════════╗\n";
-    text += "  🎉 抽選募集 🎉\n";
+    let 
+    text = "╔══════════════╗\n";
+    text += "🎉 ${date} の抽選募集 🎉\n";
     text += "╚══════════════╝\n\n";
 
-    text += `📅 抽選日：${date}\n\n`;
-
-    text += "📦 応募アイテム\n";
+    text += `【ID】${entryId}\n`;
+    text += "📝 欲しい商品にリアクションお願いします\n";
     text += "--------------------------------\n";
     for (const it of items) {
       text += `${it.emoji} ${it.label}\n`;
     }
     text += "--------------------------------\n\n";
 
-    text += `📝 応募方法：このメッセージにリアクション\n`;
-    text += `📌 備考：${note}\n`;
+    text += `📌 ${note}\n\n`;
 
     // --- 投稿 ---
     const msg = await lotteryChannel.send(text);
