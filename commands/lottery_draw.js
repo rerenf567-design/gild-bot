@@ -42,7 +42,9 @@ module.exports = {
     try {
       const entryChannel = await interaction.client.channels.fetch(channelId);
       entryMessage = await entryChannel.messages.fetch(messageId);
-    } catch {}
+    } catch (e) {
+      entryMessage = null;
+    }
 
     // --- リアクションから応募者を読み取る ---
     for (const item of items) {
@@ -62,12 +64,13 @@ module.exports = {
     }
 
     // --- 抽選結果（赤系デザイン） ---
-    let 
-    resultText = "╔══════════════╗\n";
-    resultText += "🏆 ${date} の抽選結果 🏆\n";
-    resultText += "╚══════════════╝\n\n";
-    resultText += `【ID】${entryId}】\n\n`;
+let resultText = "";
+resultText += "╔════ 🏆 抽選結果 🏆 ════╗\n";
+resultText += `        ${date}\n`;
+resultText += "╚═══════════════════════╝\n\n";
+resultText += `【ID】${entryId}\n\n`;
 
+    // --- ログ（スタッフ用） ---
     let logText = `【抽選ログ】${entryId}\n抽選日：${date}\n\n`;
 
     for (let i = 0; i < items.length; i++) {
@@ -89,13 +92,14 @@ module.exports = {
         resultText += `\n`;
       }
 
-      // --- ログ（メンションなし・Markdown安全化） ---
+      // --- ログ（メンションなし・escape なし） ---
       logText += `■ ${item.label}\n`;
       logText += `当選者（${winners.length}名）\n`;
 
       for (const uid of winners) {
         const user = await interaction.client.users.fetch(uid);
-        logText += `- ${escapeMarkdown(user.username)}\n`;
+        const raw = user.username; // ← escape しない
+        logText += `- ${raw}\n`;
       }
 
       logText += `\nその他（ランダム順）\n`;
@@ -104,7 +108,8 @@ module.exports = {
       } else {
         for (const uid of others) {
           const user = await interaction.client.users.fetch(uid);
-          logText += `- ${escapeMarkdown(user.username)}\n`;
+          const raw = user.username; // ← escape しない
+          logText += `- ${raw}\n`;
         }
         logText += `\n`;
       }
@@ -112,12 +117,14 @@ module.exports = {
 
     resultText += `🎉 おめでとうございます！`;
 
+    // --- 出力 ---
     const resultChannel = interaction.guild.channels.cache.get("1486690827119100024");
     await resultChannel.send(resultText);
 
     const commandChannel = interaction.guild.channels.cache.get("1481902590890606633");
-    await commandChannel.send(logText);
+    await commandChannel.send("```\n" + logText + "```");
 
+    // --- データ削除 ---
     delete data[entryId];
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 

@@ -46,7 +46,11 @@ module.exports = {
           const fetched = await reaction.users.fetch();
           users = fetched
             .filter(u => !u.bot)
-            .map(u => escapeMarkdown(u.username)); // ← 安全化
+            .map(u => {
+              const raw = u.username;               // ← 生の名前
+              const safe = escapeMarkdown(raw);     // ← Discord 用
+              return safe;                          // ← Discord 表示には safe を使う
+            });
         }
       }
 
