@@ -40,14 +40,15 @@ module.exports = {
       return { emoji, label, entries: [] };
     });
 
-    // --- 抽選チャンネル（募集＋結果を統合） ---
+    // --- 抽選チャンネル ---
     const lotteryChannel = interaction.guild.channels.cache.get("1486690827119100024");
 
-    // --- 青系デザイン（募集） ---
+    // --- 上下ライン型（最安定） ---
     let text = "";
-    text += "┏━━━ 🌀 抽選エントリー ━━━┓\n";
-    text += `　　　【ID】${entryId}\n`;
-    text += "┗━━━━━━━━━━━━━━┛\n\n";
+    text += "━━━━━━━━━━━\n";
+    text += "🎟️ 抽選エントリー\n";
+    text += `【ID】${entryId}\n`;
+    text += "━━━━━━━━━━━\n\n";
 
     text += `📅 抽選日：${date}\n`;
     text += "📝 欲しい商品にリアクションしてください\n\n";

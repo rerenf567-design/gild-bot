@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, escapeMarkdown } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
 
 module.exports = {
@@ -63,12 +63,13 @@ module.exports = {
       item.entries = fetched.filter(u => !u.bot).map(u => u.id);
     }
 
-    // --- 抽選結果（赤系デザイン） ---
-let resultText = "";
-resultText += "╔════ 🏆 抽選結果 🏆 ════╗\n";
-resultText += `        ${date}\n`;
-resultText += "╚═══════════════════════╝\n\n";
-resultText += `【ID】${entryId}\n\n`;
+    // --- 抽選結果（上下ライン型） ---
+    let resultText = "";
+    resultText += "━━━━━━━━━━━\n";
+    resultText += "🏆 抽選結果 🏆\n";
+    resultText += `${date}\n`;
+    resultText += `【ID】${entryId}\n`;
+    resultText += "━━━━━━━━━━━\n\n";
 
     // --- ログ（スタッフ用） ---
     let logText = `【抽選ログ】${entryId}\n抽選日：${date}\n\n`;
@@ -92,14 +93,13 @@ resultText += `【ID】${entryId}\n\n`;
         resultText += `\n`;
       }
 
-      // --- ログ（メンションなし・escape なし） ---
+      // --- ログ（メンションなし） ---
       logText += `■ ${item.label}\n`;
       logText += `当選者（${winners.length}名）\n`;
 
       for (const uid of winners) {
         const user = await interaction.client.users.fetch(uid);
-        const raw = user.username; // ← escape しない
-        logText += `- ${raw}\n`;
+        logText += `- ${user.username}\n`;
       }
 
       logText += `\nその他（ランダム順）\n`;
@@ -108,14 +108,13 @@ resultText += `【ID】${entryId}\n\n`;
       } else {
         for (const uid of others) {
           const user = await interaction.client.users.fetch(uid);
-          const raw = user.username; // ← escape しない
-          logText += `- ${raw}\n`;
+          logText += `- ${user.username}\n`;
         }
         logText += `\n`;
       }
     }
 
-    resultText += `🎉 おめでとうございます！`;
+    resultText += `🎉 おめでとうございます！\n\n`;
 
     // --- 出力 ---
     const resultChannel = interaction.guild.channels.cache.get("1486690827119100024");
