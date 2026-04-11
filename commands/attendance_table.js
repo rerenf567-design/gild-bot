@@ -1,5 +1,10 @@
-const { SlashCommandBuilder, escapeMarkdown } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
+
+// --- アンダーバーだけ守る軽量エスケープ ---
+function safeName(name) {
+  return name.replace(/_/g, "\\_");
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,6 +21,7 @@ module.exports = {
 
     await interaction.reply({ content: '集計中です…' });
 
+    // --- JSON 読み込み ---
     const file = '/data/attendance.json';
     if (!fs.existsSync(file)) {
       return interaction.followUp('attendance.json が存在しません。');
@@ -29,12 +35,14 @@ module.exports = {
 
     const { messageId, channelId, options } = data[entryId];
 
+    // --- メッセージ取得 ---
     let msg = null;
     try {
       const entryChannel = await interaction.client.channels.fetch(channelId);
       msg = await entryChannel.messages.fetch(messageId);
     } catch {}
 
+    // --- リアクション集計 ---
     const contentResults = {};
 
     for (const opt of options) {
@@ -46,17 +54,14 @@ module.exports = {
           const fetched = await reaction.users.fetch();
           users = fetched
             .filter(u => !u.bot)
-            .map(u => {
-              const raw = u.username;               // ← 生の名前
-              const safe = escapeMarkdown(raw);     // ← Discord 用
-              return safe;                          // ← Discord 表示には safe を使う
-            });
+            .map(u => safeName(u.username)); // ← アンダーバーだけ守る
         }
       }
 
       contentResults[`${opt.emoji} ${opt.label}`] = users;
     }
 
+    // --- CSV 形式に整形 ---
     const columns = Object.entries(contentResults).map(([content, users]) => {
       const col = [];
       col.push(content);
@@ -73,9 +78,11 @@ module.exports = {
       output += line + '\n';
     }
 
+    // --- 出力（コードブロック） ---
     const commandChannel = interaction.guild.channels.cache.get("1481902590890606633");
     await commandChannel.send("```\n" + output + "```");
 
+    // --- データ削除 ---
     delete data[entryId];
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 

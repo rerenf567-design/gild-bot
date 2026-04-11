@@ -36,28 +36,25 @@ module.exports = {
     const options = rawList.split(',').map(item => {
       const trimmed = item.trim();
       const [emoji, ...labelParts] = trimmed.split(' ');
-      const label = labelParts.join(' ');
-      return { emoji, label };
+      return { emoji, label: labelParts.join(' ') };
     });
 
-    // --- パターンC本文 ---
-    let text = "";
-    text += "★━━━━━━━━━━━━━━━━★\n";
-    text += "🏰 ${date} 週のギルコン出欠確認 🏰\n";
-    text += "★━━━━━━━━━━━━━━━━★\n\n";
-    text += `【ID】${entryId}\n`;
-    text += `リアクションをお願いします！\n\n`;
-      text += "--------------------------------\n";
+    // --- パターンC本文（テンプレートリテラルで一括管理） ---
+    const listText = options.map(opt => `${opt.emoji} ${opt.label}`).join('\n');
 
-    for (const opt of options) {
-      text += `${opt.emoji} ${opt.label}\n`;
-    }
+    const text = `
+★━━━━━━━━━━━━━━━━★
+🏰 ${date} 週のギルコン出欠確認 🏰
+★━━━━━━━━━━━━━━━━★
 
-    text += "--------------------------------\n\n";
+【ID】${entryId}
+リアクションをお願いします！
 
-    if (note) {
-      text += `📌 ${note}\n`;
-    }
+--------------------------------
+${listText}
+--------------------------------
+
+${note ? `📌 ${note}\n` : ''}`.trim();
 
     // --- 応募チャンネルに投稿 ---
     const entryChannel = interaction.guild.channels.cache.get("1127938242302443530");
