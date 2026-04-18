@@ -1,11 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
 
-// --- アンダーバーだけ守る軽量エスケープ ---
-function safeName(name) {
-  return name.replace(/_/g, "\\_");
-}
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('attendance_table')
@@ -21,7 +16,6 @@ module.exports = {
 
     await interaction.reply({ content: '集計中です…' });
 
-    // --- JSON 読み込み ---
     const file = '/data/attendance.json';
     if (!fs.existsSync(file)) {
       return interaction.followUp('attendance.json が存在しません。');
@@ -29,6 +23,19 @@ module.exports = {
 
     const data = JSON.parse(fs.readFileSync(file, 'utf8'));
 
+    // --- ★ 古いIDを自動削除（14日） ---
+    const now = Date.now();
+    const limit = 14 * 24 * 60 * 60 * 1000;
+
+    for (const key of Object.keys(data)) {
+      if (data[key].createdAt && now - data[key].createdAt > limit) {
+        delete data[key];
+      }
+    }
+
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+
+    // --- ID 存在チェック ---
     if (!data[entryId]) {
       return interaction.followUp('指定されたIDのデータがありません。');
     }
@@ -51,10 +58,12 @@ module.exports = {
       if (msg) {
         const reaction = msg.reactions.cache.get(opt.emoji);
         if (reaction) {
-          const fetched = await reaction.users.fetch();
+          // ★ 1番目のリアクション漏れを防ぐ
+          const fetched = await reaction.users.fetch({ after: "0" });
+
           users = fetched
             .filter(u => !u.bot)
-            .map(u => safeName(u.username)); // ← アンダーバーだけ守る
+            .map(u => u.username);  // safeName は不要
         }
       }
 
@@ -78,12 +87,12 @@ module.exports = {
       output += line + '\n';
     }
 
-    // --- 出力（コードブロック） ---
+    // --- 出力 ---
     const commandChannel = interaction.guild.channels.cache.get("1481902590890606633");
-    await commandChannel.send("```\n" + output + "```");
+    await commandChannel.send("```text\n" + output + "```");
 
-    // --- データ削除 ---
-    delete data[entryId];
+    // --- ★ 削除ではなく completed フラグを付ける ---
+    data[entryId].completed = true;
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
     await interaction.followUp({ content: '出欠集計が完了しました！' });
