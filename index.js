@@ -51,34 +51,7 @@ client.on('messageCreate', async message => {
 
   const [cmd, ...args] = message.content.slice(prefix.length).split(' ');
 
-  // !ac → attendance_create（ID方式）
-  if (cmd === 'ac') {
-    const entryId = args[0];
-    const date = args[1];
-    const list = args.slice(2).join(' ');
-
-    const command = client.commands.get('attendance_create');
-    if (!command) return;
-
-    await command.execute({
-      reply: async (obj) => message.channel.send(obj),
-      followUp: async (obj) => message.channel.send(obj),
-      channel: message.channel,
-      user: message.author,
-      guild: message.guild,
-      options: {
-        getString: (name) => {
-          if (name === 'id') return entryId;
-          if (name === 'date') return date;
-          if (name === 'list') return list;
-          if (name === 'note') return null;
-          return null;
-        }
-      }
-    });
-  }
-
-  // !at → attendance_table（ID方式）
+    // !at → attendance_table（ID方式）
   if (cmd === 'at') {
     const entryId = args[0];
 
@@ -99,6 +72,40 @@ client.on('messageCreate', async message => {
       }
     });
   }
+  if (cmd === 'ac') {
+  const entryId = args[0];
+  const date = args[1];
+
+  // 2つ目以降をまとめて raw に
+  const raw = args.slice(2).join(' ');
+
+  // ; で note を分離
+  const [listPart, notePart] = raw.split(';').map(s => s.trim());
+
+  const list = listPart;
+  const note = notePart ?? '';
+
+  const command = client.commands.get('attendance_create');
+  if (!command) return;
+
+  await command.execute({
+    reply: async (obj) => message.channel.send(obj),
+    followUp: async (obj) => message.channel.send(obj),
+    channel: message.channel,
+    user: message.author,
+    guild: message.guild,
+    options: {
+      getString: (name) => {
+        if (name === 'id') return entryId;
+        if (name === 'date') return date;
+        if (name === 'list') return list;
+        if (name === 'note') return note;   // ← ここが重要
+        return null;
+      }
+    }
+  });
+}
+
 
   // !le → lottery_entry（ID方式）
   if (cmd === 'le') {
